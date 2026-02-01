@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pokemon Math Blaster Plus</title>
+    <style>
+        /* ========================================
+           CSS - This makes everything look cool!
+           ======================================== */
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            transition: background-color 0.5s ease;
+        }
+
+        /* The game title */
+        h1 {
+            color: #ffcb05;
+            text-shadow: 3px 3px 0px #3d7dca, 5px 5px 0px #2a75bb;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* The main game box */
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 450px;
+            width: 100%;
+        }
+
+        /* Score and Pokemon count */
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .stats span {
+            background: #f0f0f0;
+            padding: 10px 15px;
+            border-radius: 10px;
+        }
+
+        /* Progress bar to next Pokemon */
+        .progress-container {
+            margin: 15px 0;
+            text-align: center;
+        }
+
+        .progress-label {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffcb05, #ff6b6b);
+            border-radius: 15px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* Where the Pokemon appears */
+        .pokemon-area {
+            margin: 20px 0;
+        }
+
+        .pokemon-area img {
+            width: 150px;
+            height: 150px;
+            image-rendering: pixelated;
+        }
+
+        .pokemon-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+        }
+
+        /* The math problem */
+        .math-problem {
+            font-size: 2.5rem;
+            color: #333;
+            margin: 20px 0;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 15px;
+        }
+
+        /* The answer box */
+        .answer-input {
+            font-size: 2rem;
+            padding: 15px;
+            width: 150px;
+            text-align: center;
+            border: 3px solid #3d7dca;
+            border-radius: 10px;
+            margin: 10px;
+        }
+
+        .answer-input:focus {
+            outline: none;
+            border-color: #ffcb05;
+            box-shadow: 0 0 10px #ffcb05;
+        }
+
+        /* The submit button */
+        .submit-btn {
+            font-size: 1.5rem;
+            padding: 15px 40px;
+            background: #ffcb05;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #3d7dca;
+            margin: 10px;
+            transition: transform 0.1s;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .submit-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Collection button */
+        .collection-btn {
+            font-size: 1rem;
+            padding: 10px 20px;
+            background: #3d7dca;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            margin: 10px;
+        }
+
+        .collection-btn:hover {
+            background: #2a5a9a;
+        }
+
+        /* Message area for correct/wrong */
+        .message {
+            font-size: 1.5rem;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            min-height: 60px;
+        }
+
+        .message.correct {
+            background: #90EE90;
+            color: #006400;
+        }
+
+        .message.wrong {
+            background: #FFB6C1;
+            color: #8B0000;
+        }
+
+        .message.unlock {
+            background: #FFD700;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        /* Pokemon celebration animation */
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .pokemon-area.happy img {
+            animation: bounce 0.5s ease 3;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .pokemon-area.sad img {
+            animation: shake 0.3s ease 2;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        .pokemon-area.new-unlock img {
+            animation: spin 1s ease;
+        }
+
+        /* Collection popup */
+        .collection-popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .collection-popup.show {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .collection-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            margin: 20px 0;
+        }
+
+        .collection-content h2 {
+            color: #3d7dca;
+            margin-bottom: 20px;
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .pokemon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pokemon-card {
+            text-align: center;
+            padding: 10px;
+            border-radius: 10px;
+            background: #f0f0f0;
+        }
+
+        .pokemon-card.locked {
+            background: #333;
+        }
+
+        .pokemon-card img {
+            width: 60px;
+            height: 60px;
+            image-rendering: pixelated;
+        }
+
+        .pokemon-card.locked img {
+            filter: brightness(0);
+        }
+
+        .pokemon-card .card-name {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            color: #333;
+        }
+
+        .pokemon-card.locked .card-name {
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Pokemon Math Blaster Plus!</h1>
+
+    <div class="game-container">
+        <!-- Score and Pokemon count -->
+        <div class="stats">
+            <span>Score: <strong id="score">0</strong></span>
+            <span>Pokemon: <strong id="pokemonCount">1</strong>/100</span>
+        </div>
+
+        <!-- Progress to next Pokemon -->
+        <div class="progress-container">
+            <div class="progress-label">Next Pokemon in: <span id="questionsLeft">10</span> correct answers</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%">0/10</div>
+            </div>
+        </div>
+
+        <!-- Pokemon appears here -->
+        <div class="pokemon-area" id="pokemonArea">
+            <img id="pokemonImg" src="" alt="Pokemon">
+            <div class="pokemon-name" id="pokemonName">Loading...</div>
+        </div>
+
+        <!-- Math problem -->
+        <div class="math-problem" id="problem">
+            Loading...
+        </div>
+
+        <!-- Answer input -->
+        <input
+            type="number"
+            class="answer-input"
+            id="answer"
+            placeholder="?"
+            autofocus
+        >
+
+        <br>
+
+        <!-- Check answer button -->
+        <button class="submit-btn" id="submitBtn">
+            Check Answer!
+        </button>
+
+        <!-- View collection button -->
+        <br>
+        <button class="collection-btn" id="collectionBtn">
+            View My Pokemon Collection
+        </button>
+
+        <!-- Message -->
+        <div class="message" id="message"></div>
+    </div>
+
+    <!-- Collection Popup -->
+    <div class="collection-popup" id="collectionPopup">
+        <div class="collection-content">
+            <span class="close-btn" id="closeBtn">&times;</span>
+            <h2>My Pokemon Collection</h2>
+            <p>You have unlocked <strong id="collectionCount">1</strong> out of 100 Pokemon!</p>
+            <div class="pokemon-grid" id="pokemonGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        /* ========================================
+           JAVASCRIPT - This makes the game work!
+           ======================================== */
+
+        // ---- 100 POKEMON TO COLLECT! ----
+        const allPokemon = [
+            { name: 'Bulbasaur', id: 1 },
+            { name: 'Ivysaur', id: 2 },
+            { name: 'Venusaur', id: 3 },
+            { name: 'Charmander', id: 4 },
+            { name: 'Charmeleon', id: 5 },
+            { name: 'Charizard', id: 6 },
+            { name: 'Squirtle', id: 7 },
+            { name: 'Wartortle', id: 8 },
+            { name: 'Blastoise', id: 9 },
+            { name: 'Caterpie', id: 10 },
+            { name: 'Butterfree', id: 12 },
+            { name: 'Weedle', id: 13 },
+            { name: 'Beedrill', id: 15 },
+            { name: 'Pidgey', id: 16 },
+            { name: 'Pidgeotto', id: 17 },
+            { name: 'Pidgeot', id: 18 },
+            { name: 'Rattata', id: 19 },
+            { name: 'Raticate', id: 20 },
+            { name: 'Pikachu', id: 25 },
+            { name: 'Raichu', id: 26 },
+            { name: 'Sandshrew', id: 27 },
+            { name: 'Sandslash', id: 28 },
+            { name: 'Nidoran', id: 29 },
+            { name: 'Nidoking', id: 34 },
+            { name: 'Clefairy', id: 35 },
+            { name: 'Clefable', id: 36 },
+            { name: 'Vulpix', id: 37 },
+            { name: 'Ninetales', id: 38 },
+            { name: 'Jigglypuff', id: 39 },
+            { name: 'Wigglytuff', id: 40 },
+            { name: 'Zubat', id: 41 },
+            { name: 'Golbat', id: 42 },
+            { name: 'Oddish', id: 43 },
+            { name: 'Vileplume', id: 45 },
+            { name: 'Paras', id: 46 },
+            { name: 'Diglett', id: 50 },
+            { name: 'Dugtrio', id: 51 },
+            { name: 'Meowth', id: 52 },
+            { name: 'Persian', id: 53 },
+            { name: 'Psyduck', id: 54 },
+            { name: 'Golduck', id: 55 },
+            { name: 'Mankey', id: 56 },
+            { name: 'Primeape', id: 57 },
+            { name: 'Growlithe', id: 58 },
+            { name: 'Arcanine', id: 59 },
+            { name: 'Poliwag', id: 60 },
+            { name: 'Poliwhirl', id: 61 },
+            { name: 'Abra', id: 63 },
+            { name: 'Kadabra', id: 64 },
+            { name: 'Alakazam', id: 65 },
+            { name: 'Machop', id: 66 },
+            { name: 'Machoke', id: 67 },
+            { name: 'Machamp', id: 68 },
+            { name: 'Geodude', id: 74 },
+            { name: 'Golem', id: 76 },
+            { name: 'Ponyta', id: 77 },
+            { name: 'Rapidash', id: 78 },
+            { name: 'Slowpoke', id: 79 },
+            { name: 'Slowbro', id: 80 },
+            { name: 'Magnemite', id: 81 },
+            { name: 'Magneton', id: 82 },
+            { name: 'Farfetchd', id: 83 },
+            { name: 'Doduo', id: 84 },
+            { name: 'Seel', id: 86 },
+            { name: 'Dewgong', id: 87 },
+            { name: 'Grimer', id: 88 },
+            { name: 'Muk', id: 89 },
+            { name: 'Shellder', id: 90 },
+            { name: 'Cloyster', id: 91 },
+            { name: 'Gastly', id: 92 },
+            { name: 'Haunter', id: 93 },
+            { name: 'Gengar', id: 94 },
+            { name: 'Onix', id: 95 },
+            { name: 'Drowzee', id: 96 },
+            { name: 'Hypno', id: 97 },
+            { name: 'Krabby', id: 98 },
+            { name: 'Voltorb', id: 100 },
+            { name: 'Electrode', id: 101 },
+            { name: 'Exeggcute', id: 102 },
+            { name: 'Cubone', id: 104 },
+            { name: 'Marowak', id: 105 },
+            { name: 'Hitmonlee', id: 106 },
+            { name: 'Hitmonchan', id: 107 },
+            { name: 'Lickitung', id: 108 },
+            { name: 'Koffing', id: 109 },
+            { name: 'Rhyhorn', id: 111 },
+            { name: 'Chansey', id: 113 },
+            { name: 'Tangela', id: 114 },
+            { name: 'Kangaskhan', id: 115 },
+            { name: 'Horsea', id: 116 },
+            { name: 'Seadra', id: 117 },
+            { name: 'Goldeen', id: 118 },
+            { name: 'Staryu', id: 120 },
+            { name: 'Starmie', id: 121 },
+            { name: 'MrMime', id: 122 },
+            { name: 'Scyther', id: 123 },
+            { name: 'Jynx', id: 124 },
+            { name: 'Electabuzz', id: 125 },
+            { name: 'Magmar', id: 126 },
+            { name: 'Pinsir', id: 127 },
+            { name: 'Tauros', id: 128 },
+            { name: 'Magikarp', id: 129 },
+            { name: 'Gyarados', id: 130 },
+            { name: 'Lapras', id: 131 },
+            { name: 'Ditto', id: 132 },
+            { name: 'Eevee', id: 133 },
+            { name: 'Vaporeon', id: 134 },
+            { name: 'Jolteon', id: 135 },
+            { name: 'Flareon', id: 136 },
+            { name: 'Porygon', id: 137 },
+            { name: 'Omanyte', id: 138 },
+            { name: 'Omastar', id: 139 },
+            { name: 'Kabuto', id: 140 },
+            { name: 'Kabutops', id: 141 },
+            { name: 'Aerodactyl', id: 142 },
+            { name: 'Snorlax', id: 143 },
+            { name: 'Articuno', id: 144 },
+            { name: 'Zapdos', id: 145 },
+            { name: 'Moltres', id: 146 },
+            { name: 'Dratini', id: 147 },
+            { name: 'Dragonair', id: 148 },
+            { name: 'Dragonite', id: 149 },
+            { name: 'Mewtwo', id: 150 },
+            { name: 'Mew', id: 151 }
+        ].slice(0, 100); // Make sure we only have 100
+
+        // ---- BACKGROUND COLORS ----
+        const colors = [
+            '#74ebd5', '#ACB6E5', '#FFB347', '#87CEEB', '#98FB98',
+            '#DDA0DD', '#F0E68C', '#FF6B6B', '#4ECDC4', '#FFD93D',
+        ];
+
+        // ---- GAME VARIABLES ----
+        let score = 0;
+        let correctAnswers = 0;  // Counts correct answers toward next Pokemon
+        let currentAnswer = 0;
+        let currentPokemon = allPokemon[0];
+        let unlockedPokemon = [allPokemon[0]]; // Start with Bulbasaur unlocked!
+
+        // ---- GET HTML ELEMENTS ----
+        const problemEl = document.getElementById('problem');
+        const answerEl = document.getElementById('answer');
+        const messageEl = document.getElementById('message');
+        const scoreEl = document.getElementById('score');
+        const pokemonCountEl = document.getElementById('pokemonCount');
+        const questionsLeftEl = document.getElementById('questionsLeft');
+        const progressFillEl = document.getElementById('progressFill');
+        const pokemonImgEl = document.getElementById('pokemonImg');
+        const pokemonNameEl = document.getElementById('pokemonName');
+        const pokemonAreaEl = document.getElementById('pokemonArea');
+        const submitBtn = document.getElementById('submitBtn');
+        const collectionBtn = document.getElementById('collectionBtn');
+        const collectionPopup = document.getElementById('collectionPopup');
+        const closeBtn = document.getElementById('closeBtn');
+        const pokemonGrid = document.getElementById('pokemonGrid');
+        const collectionCountEl = document.getElementById('collectionCount');
+
+        // ---- FUNCTION: Change background color ----
+        function changeBackgroundColor() {
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            document.body.style.backgroundColor = randomColor;
+        }
+
+        // ---- FUNCTION: Update progress bar ----
+        function updateProgress() {
+            const progress = (correctAnswers % 10);
+            const percentage = progress * 10;
+            progressFillEl.style.width = percentage + '%';
+            progressFillEl.textContent = progress + '/10';
+            questionsLeftEl.textContent = 10 - progress;
+        }
+
+        // ---- FUNCTION: Show current Pokemon ----
+        function showPokemon(pokemon) {
+            currentPokemon = pokemon;
+            pokemonNameEl.textContent = pokemon.name;
+            pokemonImgEl.src = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`;
+        }
+
+        // ---- FUNCTION: Unlock a new Pokemon! ----
+        function unlockNewPokemon() {
+            // Find Pokemon that are not yet unlocked
+            const lockedPokemon = allPokemon.filter(p =>
+                !unlockedPokemon.some(u => u.id === p.id)
+            );
+
+            if (lockedPokemon.length === 0) {
+                // All Pokemon are unlocked!
+                messageEl.textContent = "WOW! You've collected ALL 100 Pokemon!";
+                messageEl.className = 'message unlock';
+                return;
+            }
+
+            // Pick a random locked Pokemon
+            const newPokemon = lockedPokemon[Math.floor(Math.random() * lockedPokemon.length)];
+            unlockedPokemon.push(newPokemon);
+
+            // Update count
+            pokemonCountEl.textContent = unlockedPokemon.length;
+
+            // Show the new Pokemon!
+            showPokemon(newPokemon);
+            pokemonAreaEl.className = 'pokemon-area new-unlock';
+
+            // Show unlock message
+            messageEl.textContent = `NEW POKEMON UNLOCKED: ${newPokemon.name}!`;
+            messageEl.className = 'message unlock';
+        }
+
+        // ---- FUNCTION: Show a random unlocked Pokemon ----
+        function showRandomUnlockedPokemon() {
+            const randomPokemon = unlockedPokemon[Math.floor(Math.random() * unlockedPokemon.length)];
+            showPokemon(randomPokemon);
+        }
+
+        // ---- FUNCTION: Create a new math problem ----
+        function newProblem() {
+            const mathType = Math.floor(Math.random() * 4);
+            let num1, num2, symbol;
+
+            if (mathType === 0) {
+                // ADDITION
+                num1 = Math.floor(Math.random() * 100) + 1;
+                num2 = Math.floor(Math.random() * 100) + 1;
+                currentAnswer = num1 + num2;
+                symbol = '+';
+            } else if (mathType === 1) {
+                // SUBTRACTION
+                num1 = Math.floor(Math.random() * 100) + 1;
+                num2 = Math.floor(Math.random() * num1) + 1;
+                currentAnswer = num1 - num2;
+                symbol = '-';
+            } else if (mathType === 2) {
+                // MULTIPLICATION
+                num1 = Math.floor(Math.random() * 12) + 1;
+                num2 = Math.floor(Math.random() * 12) + 1;
+                currentAnswer = num1 * num2;
+                symbol = '×';
+            } else {
+                // DIVISION
+                num2 = Math.floor(Math.random() * 12) + 1;
+                currentAnswer = Math.floor(Math.random() * 12) + 1;
+                num1 = num2 * currentAnswer;
+                symbol = '÷';
+            }
+
+            problemEl.textContent = `${num1} ${symbol} ${num2} = ?`;
+            answerEl.value = '';
+            answerEl.focus();
+
+            // Only clear message if not showing unlock message
+            if (!messageEl.classList.contains('unlock')) {
+                messageEl.textContent = '';
+                messageEl.className = 'message';
+            }
+
+            pokemonAreaEl.className = 'pokemon-area';
+            changeBackgroundColor();
+        }
+
+        // ---- FUNCTION: Check the answer ----
+        function checkAnswer() {
+            const userAnswer = parseInt(answerEl.value);
+
+            if (isNaN(userAnswer)) {
+                messageEl.textContent = 'Type a number!';
+                messageEl.className = 'message wrong';
+                return;
+            }
+
+            if (userAnswer === currentAnswer) {
+                // CORRECT!
+                score += 10;
+                correctAnswers++;
+                scoreEl.textContent = score;
+                updateProgress();
+
+                // Check if we should unlock a new Pokemon (every 10 correct)
+                if (correctAnswers % 10 === 0 && unlockedPokemon.length < 100) {
+                    unlockNewPokemon();
+                    setTimeout(newProblem, 2500); // Longer wait to see new Pokemon
+                } else {
+                    messageEl.textContent = `CORRECT! ${currentPokemon.name} is happy!`;
+                    messageEl.className = 'message correct';
+                    pokemonAreaEl.className = 'pokemon-area happy';
+                    setTimeout(() => {
+                        showRandomUnlockedPokemon();
+                        newProblem();
+                    }, 1500);
+                }
+            } else {
+                // WRONG
+                messageEl.textContent = `Not quite! Try again!`;
+                messageEl.className = 'message wrong';
+                pokemonAreaEl.className = 'pokemon-area sad';
+                answerEl.value = '';
+                answerEl.focus();
+            }
+        }
+
+        // ---- FUNCTION: Show collection ----
+        function showCollection() {
+            collectionCountEl.textContent = unlockedPokemon.length;
+            pokemonGrid.innerHTML = '';
+
+            allPokemon.forEach(pokemon => {
+                const isUnlocked = unlockedPokemon.some(u => u.id === pokemon.id);
+                const card = document.createElement('div');
+                card.className = 'pokemon-card' + (isUnlocked ? '' : ' locked');
+                card.innerHTML = `
+                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png" alt="${pokemon.name}">
+                    <div class="card-name">${isUnlocked ? pokemon.name : '???'}</div>
+                `;
+                pokemonGrid.appendChild(card);
+            });
+
+            collectionPopup.classList.add('show');
+        }
+
+        // ---- EVENT LISTENERS ----
+        submitBtn.addEventListener('click', checkAnswer);
+
+        answerEl.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        collectionBtn.addEventListener('click', showCollection);
+
+        closeBtn.addEventListener('click', function() {
+            collectionPopup.classList.remove('show');
+        });
+
+        collectionPopup.addEventListener('click', function(e) {
+            if (e.target === collectionPopup) {
+                collectionPopup.classList.remove('show');
+            }
+        });
+
+        // ---- START THE GAME! ----
+        showPokemon(allPokemon[0]); // Start with Bulbasaur
+        pokemonCountEl.textContent = unlockedPokemon.length;
+        updateProgress();
+        changeBackgroundColor();
+        newProblem();
+    </script>
+</body>
+</html>
